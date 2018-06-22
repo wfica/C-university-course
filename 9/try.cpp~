@@ -1,0 +1,13 @@
+#include<iostream>
+#include<iomanip>
+
+using namespace std;
+
+int main()
+{
+	cout<<setw(10);
+	cout<<11<< " "<< 12<<"\n";
+	cout<<11<<"\n";
+
+	return 0;
+}

@@ -1,0 +1,150 @@
+
+#include "varchain.h"
+#include <algorithm>
+
+
+std::ostream& operator << ( std::ostream& out, const powvar & p )
+{
+   if( p.n == 0 )
+   {
+      out << "1"; // Should not happen, but we still have to print something.
+      return out;
+   }
+
+   out << p.v;
+   if( p.n == 1 )
+      return out;
+
+   if( p.n > 0 )
+      out << "^" << p.n;
+   else
+      out << "^{" << p.n << "}";
+   return out;
+}
+
+
+std::ostream& operator << ( std::ostream& out, const varchain& c )
+{
+   if( c. isunit( ))
+   {
+      out << "1";
+      return out;
+   }
+
+   for( auto p = c. repr. begin( ); p != c. repr. end( ); ++ p )
+   {
+      if( p != c. repr. begin( ))
+         out << ".";
+      out << *p;
+   }
+
+   return out;
+}
+
+
+int varchain::power( ) const 
+{
+   int p = 0;
+   for( auto pv : repr )
+      p += pv. n;
+   return p;
+}
+
+
+bool powvarCMP ( powvar i, powvar j) 
+{
+   return i.v < j.v;
+}
+
+void varchain::normalize( )
+{
+   sort( repr.begin(), repr.end() , powvarCMP);
+   
+   std::vector<powvar> res;
+   
+   for( size_t i=0; i < repr.size(); )
+   {
+      size_t j=i+1;
+      while( j < repr.size() and repr[i].v == repr[j].v)
+      {
+            repr[i].n += repr[j].n;
+            repr[j].n = 0;
+            j++;
+      }
+      if(repr[i].n > 0) res.push_back(repr[i]) ;
+      i = j;
+   }
+   
+   repr = res;
+}
+
+
+// EQ = 0    LT = -1    GT = 1
+ int varchain::compare( const varchain& c1, const varchain& c2 )
+{
+   
+   size_t common_part = std::min ( c1.size(), c2.size() );
+   for(size_t i=0; i< common_part; ++i)
+   {
+      switch (c1[i].v.compare(c2[i].v)) {
+      case -1 : return -1;
+      case  1 : return  1;
+      case  0 :  
+         if ( c1[i].n < c2[i].n ) return -1;
+         else if ( c1[i].n > c2[i].n ) return  1;
+      }
+   }
+   if ( c1.size() > common_part ) return 1;
+   if ( c2.size() > common_part ) return -1;
+   return 0;
+}
+
+varchain operator * ( varchain c1, const varchain& c2 )
+{
+	c1.repr.reserve( c1.repr.size() + c2.repr.size() );
+	c1.repr.insert(c1.repr.end(), c2.repr.begin(), c2.repr.end());
+	c1.normalize();
+	return c1;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

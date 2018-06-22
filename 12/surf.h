@@ -1,0 +1,133 @@
+#ifndef SURF_INCLUDED
+#define SURF_INCLUDED 1
+
+#include <utility>
+#include <iostream>
+
+using namespace std;
+
+struct surf
+{
+	virtual double area( ) const = 0;
+	virtual double circumference( ) const = 0;
+	virtual surf* clone( ) const & = 0;
+	virtual surf* clone( ) && = 0;
+	virtual void print( std::ostream& ) const = 0;
+	virtual ~surf( ) = default;
+};
+
+struct rectangle : public surf
+{
+	double x1, y1;
+	double x2, y2;
+	rectangle(double X1, double Y1, double X2, double Y2);
+	double area( ) const override;
+	double circumference( ) const override;
+	
+	rectangle* clone( ) const & override
+	{
+   		return new rectangle (*this);
+	}
+
+	rectangle* clone( ) && override
+	{
+   		return new rectangle(std::move(*this));
+	}
+
+	void print( std::ostream& ) const override;
+};
+
+struct triangle : public surf
+{
+	double x1, y1; // Positions of corners.
+	double x2, y2;
+	double x3, y3;
+	triangle(double X1, double Y1, double X2, double Y2, double X3, double Y3);
+	double area( ) const override;
+	double circumference( ) const override;
+	triangle* clone( ) const & override
+	{
+	   return new triangle (*this);
+	}
+
+	triangle* clone( ) && override
+	{
+   		return new triangle(std::move(*this));
+	}
+	
+	void print( std::ostream& ) const override;
+};
+
+struct circle : public surf
+{
+	double x; // Position of center.
+	double y;
+	double radius;
+	circle(double X, double Y, double Radius);
+	double area( ) const override;
+	double circumference( ) const override;
+	circle* clone( ) const & override
+	{
+   		return new circle (*this);
+	}
+	circle* clone( ) && override
+	{
+   		return new circle(std::move(*this));
+	}
+	void print( std::ostream&  ) const override;
+};
+
+struct surface
+{
+	surf* ref;
+	
+	surface( const surf& s )
+	:  	ref( s.clone() ) {}
+	
+	surface( surf&& s )
+	:	ref( move(s). clone() )  {}
+	 	 
+	surface( const surface& s )
+	:   ref( s. ref -> clone() ) {}
+	
+	surface( surface&& s )
+	:	ref( move(*s.ref).clone() )  {}
+	
+	void operator = ( const surface& s )
+	{
+	   *this = surface(s);
+	}
+	
+	void operator = ( surface&& s )
+	{
+	   swap(ref, s.ref);
+	}
+	
+	void operator = ( const surf& s )
+	{	   
+	   if(&s != ref)
+	   {  delete ref;
+	      ref = s. clone();
+	   }
+	}
+	void operator = ( surf&& s )
+	{
+	   	   if( &s != ref)
+	   {   delete ref;
+	       ref = move(s).clone();
+	   }
+	}
+	
+	~surface( )
+	{
+		delete ref;
+	}
+	const surf& getsurf( ) const { return *ref; }
+// There is no non-const access, because
+// changing would be dangerous.
+};
+
+std::ostream& operator << ( std::ostream& stream, const surface& s );
+
+#endif
+
